@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shayari Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3e3c8; /* Background Beige */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 2vw;
+        }
+
+        .container {
+            background-color: white;
+            padding: 5vw;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            border: 2px solid #c7a26d; /* Border Brown */
+            margin: 2rem auto;
+            flex: 1;
+        }
+
+        h1 {
+            color: #4a6f46; /* Leaf Green (Dark) */
+            font-size: clamp(2rem, 7vw, 3rem);
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        input[type="text"] {
+            padding: 0.8rem;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #7fa977; /* Leaf Green (Light) */
+            border-radius: 5px;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            background-color: #f8f9fa;
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            background-color: #c9424a; /* Rose Bud Red */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button:hover {
+            background-color: #a6353e; /* Darkened Rose Bud Red */
+        }
+
+        #shayariOutput {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f3e3c8; /* Background Beige */
+            border: 1px solid #c7a26d; /* Border Brown */
+            border-radius: 5px;
+            white-space: pre-wrap;
+            text-align: left;
+            min-height: 150px;
+            font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+            line-height: 1.5;
+            color: #4a6f46; /* Leaf Green (Dark) */
+        }
+
+        .error {
+            color: #c9424a; /* Rose Bud Red */
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            margin-top: 1rem;
+        }
+
+        .loading {
+            color: #7fa977; /* Leaf Green (Light) */
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            margin-top: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-buttons button {
+            background-color: #7fa977; /* Leaf Green (Light) */
+            max-width: 200px;
+        }
+
+        .action-buttons button:hover {
+            background-color: #6a8d64; /* Darkened Leaf Green (Light) */
+        }
+
+        footer {
+            background-color: #4a6f46; /* Leaf Green (Dark) */
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            border-top: 3px solid #c7a26d; /* Border Brown */
+            width: 100%;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 4vw;
+                margin: 1rem auto;
+            }
+
+            h1 {
+                font-size: clamp(1.5rem, 6vw, 2.5rem);
+            }
+
+            input[type="text"], button {
+                width: 90%;
+            }
+
+            .action-buttons button {
+                width: 90%;
+                max-width: 180px;
+            }
+
+            footer {
+                padding: 1rem;
+            }
+        }
+
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .container {
+                padding: 3vw;
+                margin: 1.5rem auto;
+            }
+
+            input[type="text"], button {
+                max-width: 350px;
+            }
+
+            .action-buttons button {
+                max-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸Shayari Generator🌸</h1>
+        <div class="input-group">
+            <input type="text" id="keywordInput" placeholder="Enter a word (e.g., love, dil)">
+            <button onclick="generateShayari()">Generate Shayari</button>
+        </div>
+        <div id="shayariOutput"></div>
+        <div class="action-buttons">
+            <button onclick="shareShayari()">Share Shayari</button>
+            <button onclick="copyShayari()">Copy Shayari</button>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Shayari Generator. Craft poetry with heart.</p>
+    </footer>
+
+    <script>
+        const API_KEY = 'AIzaSyD0CFd05GzzxuE6A2GA7ZN2L8n001fP9u8'; // Replace with your actual API key
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+
+        async function generateShayari() {
+            const keyword = document.getElementById('keywordInput').value.trim();
+            const outputDiv = document.getElementById('shayariOutput');
+
+            if (!keyword) {
+                outputDiv.innerHTML = '<p class="error">Please enter a word!</p>';
+                return;
+            }
+
+            outputDiv.innerHTML = '<p class="loading">Generating Shayari...</p>';
+
+            const prompt = `Generate two Shayaris based on the word "${keyword}". First, a 4-line Hindi Shayari that is poetic, meaningful, and rhymes well. Second, a 4-line English Shayari that is poetic, meaningful, and rhymes well. Format the output as follows:\n\n**Hindi Shayari:**\n[Your Hindi Shayari here]\n\n**English Shayari:**\n[Your English Shayari here]`;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-goog-api-key': API_KEY
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch Shayari from API');
+                }
+
+                const data = await response.json();
+                const shayari = data.candidates[0].content.parts[0].text;
+
+                outputDiv.innerHTML = shayari;
+            } catch (error) {
+                outputDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        function shareShayari() {
+            const shayariText = document.getElementById('shayariOutput').innerText;
+            if (!shayariText || shayariText.includes('Please enter a word') || shayariText.includes('Error') || shayariText.includes('Generating')) {
+                alert('No Shayari to share! Please generate a Shayari first.');
+                return;
+            }
+
+            const shareData = {
+                title: 'Shayari Generator',
+                text: shayariText,
+                url: window.location.href
+            };
+
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                navigator.share(shareData)
+                    .then(() => console.log('Shayari shared successfully'))
+                    .catch((error) => console.error('Error sharing:', error));
+            } else {
+                // Fallback: Copy to clipboard
+                copyToClipboard(shayariText);
+                alert('Shayari copied to clipboard! You can paste it to share.');
+            }
+        }
+
+        function copyShayari() {
+            const shayariText = document.getElementById('shayariOutput').innerText;
+            if (!shayariText || shayariText.includes('Please enter a word') || shayariText.includes('Error') || shayariText.includes('Generating')) {
+                alert('No Shayari to copy! Please generate a Shayari first.');
+                return;
+            }
+
+            copyToClipboard(shayariText);
+            alert('Shayari copied to clipboard!');
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+    </script>
+</body>
+</html>
